@@ -1,0 +1,96 @@
+Użytkownik wprowadza ankiete <- ankieta się nie zmienia, jest "statyczna"
+
+{
+	typical_use: biuro,
+	rozmiar_ekranu: [15.6,16.8...],
+	min_dysk: 500gb,
+	praca: grafik
+}
+	
+biuro=> and(cpu(2.3), gpu(2), dysk(128))
+rozmiar_ekranu_15.6 => ekran(15.6)
+min_dysk => dysk(gt(500))
+
+and(cpu(2.3), gpu(2), dysk(128), ekran(15.6))
+
+Przykład:
+|type|param|json_rules|
+
+{
+	type: typical_use,
+	param: biuro,
+	json_rules:
+	[
+		{
+			param: cpu,
+			value: 2.3,
+			specific: false,
+			
+		},
+		{
+			param: display_port,
+			value: 1,
+			specific: true
+		}
+	]
+}
+
+Hardkodujemy zasady translacji
+
+Pliki z regułami na refresh
+
+typiec_use_biuro.rules
+cpu > 2
+gpu > 2
+monitor = 15.6
+
+
+
+typical_use.rule
+
+RULE_NAME: typical_use
+PARAM: biuro
+RULES:
+cpu > 2 
+gpu > 2
+dysk > 128
+
+
+Mamy listę parametrów charakteryzujących użytkownika
+	|
+	|
+	|
+    \/
+	
+	Każdy parametr musi mieć swoje określone ""reguły""
+	
+	Np. Granie w to -> Musi mieć takie parametry <- To wpisujemy ręcznie
+	Np. Używanie CAD -> Inne parametry <- To wspiujemy ręcznie
+	Np. Oglądanie filmów -> Lista parametrów
+	
+	Każde specyficzne ma mieć wagę oraz minimum? Na podstawie czego liczyć wagę?
+	
+	Na podstawie tego mergujemy wszystkie filtry (jaki algorym?) i wyciągamy minimalne 
+	
+	1. Wstępny prefilter wyrzucający "ZA SUPER DOBRE"(np za drogie) i "ZA SUPER ZŁE" (np za słabe)
+	
+	2. Prefilter - "specyficzne wymaganie"
+	
+	3. Funkcja ocenająca laptopa: 
+		- Dzielimy laptopa na komponenty
+		- Każdy komponent ocenić względem benchmarku 
+			- Co jeżeli nie ma danych benchmarku? -> Poszukać inny procesor o podobnych parametrach z oceną 
+		- Znaleźć nalepszy, najgorszy i w środku
+		- Na podstawie tego tworzymy ocenę każdego
+		- Proponujemy 3 laptopy: Najlepszy stosunek ceny do jakości, najtańszy i "najlepszy"
+	
+	(Algorytm Genetyczny)
+	System Oceniający 
+	
+	|
+	|
+	|
+	\/
+	
+	Zaaplikowanie filtrów do systemu
+	Wybranie laptopów spełniających te filtry i dodatkowe kategoria (cena, ocena na stronie X, najczęściej kupowany....)
