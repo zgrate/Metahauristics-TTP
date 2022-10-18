@@ -22,7 +22,7 @@ public class GreedyWithTravelCostNextCity implements ItemChoiceAlgorithm {
     //Jeżeli z tego, powtórz
     //W przeciwnym razie idz do nastepnego
     @Override
-    public TTP.ItemsResponse selectItems(TTP ttp, int[] citiesIds) {
+    public TTP.ItemsResponse selectItemsAndScore(TTP ttp, int[] citiesIds) {
         City[] cities = ttp.getAsCities(citiesIds);
         List<Item> items = new ArrayList<>();
         double currentTime = 0;

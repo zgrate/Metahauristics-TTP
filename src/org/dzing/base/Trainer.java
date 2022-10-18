@@ -1,20 +1,17 @@
 package org.dzing.base;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 public class Trainer extends Thread {
 
-    private final String outputFile;
+    private final File outputFile;
     private Solver solver;
-    private ItemChoiceAlgorithm itemChooser;
-    private TTP ttp;
     private int numberOfIterations;
 
-    public Trainer(Solver solver, ItemChoiceAlgorithm itemChooser, TTP ttp, int numberOfIterations, String outputFile) {
+    public Trainer(Solver solver, int numberOfIterations, File outputFile) {
         this.solver = solver;
-        this.itemChooser = itemChooser;
-        this.ttp = ttp;
         this.numberOfIterations = numberOfIterations;
         this.outputFile = outputFile;
     }
@@ -22,12 +19,17 @@ public class Trainer extends Thread {
     @Override
     public void run() {
         try (PrintWriter writer = new PrintWriter(outputFile)) {
-            solver.init(ttp, writer);
+
+            solver.setDebugStream(writer);
+            solver.init();
             for (int i = 0; i < numberOfIterations; i++) {
-                solver.step(ttp, writer, this.itemChooser);
-                writer.println("" + i + ";" + solver.getBestSolutionStep().getCSVString() + ";" + solver.getAverageSolutionStop().getCSVString() + ";" + solver.getWorstSolutionStep().getCSVString());
+                System.out.println("ITeration " + i + " goings");
+                writer.print(i + ";");
+                solver.step();
+                writer.println(solver.getBestSolutionStep() + ";" + solver.getAverageSolutionScore() + ";" + solver.getWorstSolutionStep());
             }
-            writer.println("" + "FINAL" + ";" + solver.getBestSolutionStep().getCSVString() + ";" + solver.getAverageSolutionStop().getCSVString() + ";" + solver.getWorstSolutionStep().getCSVString());
+            writer.println("" + "FINAL" + ";" + solver.getBestSolutionStep() + ";" + solver.getAverageSolutionScore() + ";" + solver.getWorstSolutionStep() + ";");
+            System.out.println("FINISHED " + outputFile.getName());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

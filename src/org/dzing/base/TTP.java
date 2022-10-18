@@ -115,7 +115,11 @@ public class TTP {
     }
 
     public City[] getAsCities(int[] solution) {
-        return Arrays.stream(solution).mapToObj(it -> cities[it]).toArray(City[]::new);
+        City[] city = new City[solution.length];
+        for (int i = 0; i < city.length; i++) {
+            city[i] = cities[solution[i]];
+        }
+        return city;
     }
 
     public Results calculateResults(List<Item> items, City[] cities) {
@@ -133,6 +137,7 @@ public class TTP {
                 }
             }
             nextCity = cities[cityIndex + 1];
+            double a = calculateSpeed(currentWeight);
             currentTime += this.distanceMatrix[currentCity.getId() - 1][nextCity.getId() - 1] / calculateSpeed(currentWeight);
         }
         if (nextCity != null) {
@@ -159,7 +164,7 @@ public class TTP {
     public ItemsResponse calculateFunctionValueWithGreedyItemSelection(int[] cities) {
         assert cities.length == this.cities.length && cities.length == this.dimension;
         //TODO
-        return new GreedyWithTravelCostNextCity(0.5).selectItems(this, cities);
+        return new GreedyWithTravelCostNextCity(0.5).selectItemsAndScore(this, cities);
     }
 
     public ItemCountResponse calculateWeight(List<Item> items) {
@@ -189,6 +194,30 @@ public class TTP {
         public double currentTime;
         public int currentValue, currentWeight;
         public double currentResult;
+
+        public List<Item> getItems() {
+            return items;
+        }
+
+        public City[] getCities() {
+            return cities;
+        }
+
+        public double getCurrentTime() {
+            return currentTime;
+        }
+
+        public int getCurrentValue() {
+            return currentValue;
+        }
+
+        public int getCurrentWeight() {
+            return currentWeight;
+        }
+
+        public double getCurrentResult() {
+            return currentResult;
+        }
 
         public ItemsResponse(List<Item> items, City[] cities, double currentTime, int currentValue, int currentWeight, double currentResult) {
             this.items = items;

@@ -4,6 +4,8 @@ public class Item {
 
     private int index, profit, weight, city;
 
+    private double profitToWeight;
+
     private int globalItemID;
 
     public Item(int index, int profit, int weight, int city) {
@@ -11,6 +13,11 @@ public class Item {
         this.profit = profit;
         this.weight = weight;
         this.city = city;
+        this.profitToWeight = (double) profit / (double) weight;
+    }
+
+    public double getProfitToWeight() {
+        return profitToWeight;
     }
 
     public int getGlobalItemID() {
