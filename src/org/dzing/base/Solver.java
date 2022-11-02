@@ -8,8 +8,8 @@ public abstract class Solver {
 
     protected PrintWriter debugStream;
 
-    public static int[][] deepArrayCopy(int[][] input) {
-        int[][] newCopy = new int[input.length][];
+    public static City[][] deepArrayCopy(City[][] input) {
+        City[][] newCopy = new City[input.length][];
         for (int i = 0; i < input.length; i++) {
             newCopy[i] = Arrays.copyOfRange(input[i], 0, input[i].length);
         }

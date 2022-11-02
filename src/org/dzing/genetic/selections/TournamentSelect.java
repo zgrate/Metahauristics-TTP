@@ -1,5 +1,6 @@
 package org.dzing.genetic.selections;
 
+import org.dzing.base.City;
 import org.dzing.base.TTP;
 import org.dzing.genetic.base.Select;
 
@@ -23,10 +24,8 @@ public class TournamentSelect implements Select {
         return false;
     }
 
-    private int[] selectOne(int[][] population, TTP.ItemsResponse[] scores) {
-        int number = 0;
-        double chance = 1.0 / (double) population.length;
-        int[] best = null;
+    private City[] selectOne(City[][] population, TTP.ItemsResponse[] scores) {
+        City[] best = null;
         double score = 0;
 
 
@@ -46,8 +45,8 @@ public class TournamentSelect implements Select {
     }
 
     @Override
-    public int[][] select(int[][] population, TTP.ItemsResponse[] scores, int selectNumber) {
-        int[][] response = new int[selectNumber][];
+    public City[][] select(City[][] population, TTP.ItemsResponse[] scores, int selectNumber) {
+        City[][] response = new City[selectNumber][];
 //        response[0] = selectOne(population, scores);
         for (int i = 0; i < selectNumber; i++) {
 //            while(contains(response, sel)){

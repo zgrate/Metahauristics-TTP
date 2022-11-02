@@ -1,5 +1,6 @@
 package org.dzing.hauristics;
 
+import org.dzing.base.City;
 import org.dzing.base.ItemChoiceAlgorithm;
 import org.dzing.base.Solver;
 import org.dzing.base.TTP;
@@ -15,7 +16,7 @@ public class GreedySolver extends Solver {
     private final Random random = new Random();
     int city = 0;
     private ItemChoiceAlgorithm choice;
-    private int[] solution;
+    private City[] solution;
     private TTP.ItemsResponse score;
 
     public GreedySolver(TTP ttp, ItemChoiceAlgorithm choice) {
@@ -30,31 +31,31 @@ public class GreedySolver extends Solver {
 
     @Override
     public void step() {
-        solution = new int[ttp.cities.length];
-        solution[0] = city++;
+        solution = new City[ttp.cities.length];
+        solution[0] = ttp.cities[city];
+        city++;
         if (city > ttp.cities.length) {
             city = 0;
         }
-        debugStream.write(city + ";");
-        List<Integer> lister = Arrays.stream(ttp.cities).map(it -> it.getId() - 1).collect(Collectors.toList());
-        lister.remove((Integer) solution[0]);
+        List<City> lister = Arrays.stream(ttp.cities).collect(Collectors.toList());
+        lister.remove(solution[0]);
         for (int i = 1; i < ttp.cities.length; i++) {
-            int currentCity = solution[i - 1];
-            int shortest = -1;
+            City currentCity = solution[i - 1];
+            City shortest = null;
             double distance = 0;
             for (int j = 0; j < ttp.cities.length; j++) {
-                if (lister.contains((Integer) j)) {
-                    if (shortest == -1 || (currentCity != j && ttp.distanceMatrix[currentCity][j] < distance)) {
-                        distance = ttp.distanceMatrix[currentCity][j];
-                        shortest = j;
+                if (lister.contains(ttp.cities[j])) {
+                    if (shortest == null || (currentCity != ttp.cities[j] && ttp.distanceMatrix[currentCity.getId() - 1][j] < distance)) {
+                        distance = ttp.distanceMatrix[currentCity.getId() - 1][j];
+                        shortest = ttp.cities[j];
                     }
                 }
             }
-            if (shortest == -1 && lister.size() == 1) {
+            if (shortest == null && lister.size() == 1) {
                 shortest = lister.get(0);
             }
             solution[i] = shortest;
-            lister.remove((Integer) shortest);
+            lister.remove(shortest);
         }
         score = choice.selectItemsAndScore(ttp, solution);
         assert Arrays.stream(solution).distinct().count() == solution.length;
@@ -74,5 +75,9 @@ public class GreedySolver extends Solver {
     @Override
     public double getWorstSolutionStep() {
         return score.getCurrentResult();
+    }
+
+    public TTP.ItemsResponse getStepResponse() {
+        return score;
     }
 }

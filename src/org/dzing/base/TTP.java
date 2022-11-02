@@ -5,9 +5,7 @@ import org.dzing.itemchoicealgorithms.GreedyWithTravelCostNextCity;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 
 public class TTP {
@@ -124,6 +122,7 @@ public class TTP {
 
     public Results calculateResults(List<Item> items, City[] cities) {
 
+        Set<Item> set = new HashSet<>(items);
         int currentWeight = 0, currentValue = 0;
         double currentTime = 0.0, currentResult = 0.0;
         City nextCity = null;
@@ -131,13 +130,13 @@ public class TTP {
         for (int cityIndex = 0; cityIndex < cities.length - 1; cityIndex++) {
             City currentCity = cities[cityIndex];
             for (Item i : currentCity.getItems()) {
-                if (items.contains(i)) {
+                if (set.contains(i)) {
                     currentWeight += i.getWeight();
                     currentValue += i.getProfit();
+                    set.remove(i);
                 }
             }
             nextCity = cities[cityIndex + 1];
-            double a = calculateSpeed(currentWeight);
             currentTime += this.distanceMatrix[currentCity.getId() - 1][nextCity.getId() - 1] / calculateSpeed(currentWeight);
         }
         if (nextCity != null) {
@@ -161,7 +160,7 @@ public class TTP {
         return dimension;
     }
 
-    public ItemsResponse calculateFunctionValueWithGreedyItemSelection(int[] cities) {
+    public ItemsResponse calculateFunctionValueWithGreedyItemSelection(City[] cities) {
         assert cities.length == this.cities.length && cities.length == this.dimension;
         //TODO
         return new GreedyWithTravelCostNextCity(0.5).selectItemsAndScore(this, cities);

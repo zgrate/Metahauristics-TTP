@@ -12,6 +12,9 @@ import org.dzing.genetic.selections.RouletteSelect;
 import org.dzing.genetic.selections.TournamentSelect;
 import org.dzing.hauristics.RandomSolver;
 import org.dzing.itemchoicealgorithms.GreedyPriceOverWeight;
+import org.dzing.tabu.TabuSolver;
+import org.dzing.tabu.initializers.GreedyBestCity;
+import org.dzing.tabu.initializers.RandomTabuInit;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
+    public static boolean ECHO = false;
+
     static int minPopulation = 50, maxPopulation = 450, populationStep = 100;
     static double minMutationProb = 0.1, maxMutationProb = 0.3, mutationStep = 0.05;
     static double minCrossProb = 0, maxCrossProb = 0.8, crossProbStep = 0.2;
@@ -29,6 +34,12 @@ public class Main {
     static int minTournament = 1, maxTournament = 11, tournamentStep = 2;
 
     static int randomAmountRepeat = 100000;
+
+    static int minNumberOfIteration = 200, maxNumberOfIterations = 1000, iterationStep = 200;
+    static int minNumberOfNeighbours = 10, maxNumberOfNeighbours = 110, neighbourStep = 20;
+    static int minTabuSteps = 100, maxTabuSteps = 500, tabuStep = 100;
+    static double minTabuMutationProb = 0.05, maxTabuMutationProb = 0.6, tabuMutationStep = 0.1;
+
 
     private static void performTest(String folder, String file, boolean block, ItemChoiceAlgorithm algo) throws InterruptedException {
         ExecutorService service = Executors.newFixedThreadPool(6);
@@ -97,6 +108,38 @@ public class Main {
 
     }
 
+    private static void performTestForTabu(String folder, String file, boolean block, ItemChoiceAlgorithm item) throws InterruptedException {
+        ExecutorService service = Executors.newFixedThreadPool(6);
+        File folderNew = new File("D:\\Metahauristics_Results\\tabu\\" + file + "_directory_" + System.currentTimeMillis() + "_tabu");
+        folderNew.mkdirs();
+        TTP ttp = TTP.loadTTP(Path.of(folder, file).toString());
+        assert ttp != null;
+        int i = 0;
+        for (int iterations = minNumberOfIteration; iterations < maxNumberOfIterations; iterations += iterationStep) {
+            for (int neighbours = minNumberOfNeighbours; neighbours < maxNumberOfNeighbours; neighbours += neighbourStep) {
+                for (int tabu = minTabuSteps; tabu < maxTabuSteps; tabu += tabuStep) {
+                    for (double prob = minTabuMutationProb; prob < maxTabuMutationProb; prob += tabuMutationStep) {
+                        service.submit(new Trainer(new TabuSolver(new RandomTabuInit(), ttp, neighbours, new SwapMutate(), prob, item, tabu), iterations, new File(folderNew, neighbours + "_" + prob + "_" + tabu + "_random_swap_" + item.getClass().getName() + "_" + iterations + ".csv")));
+                        service.submit(new Trainer(new TabuSolver(new GreedyBestCity(), ttp, neighbours, new SwapMutate(), prob, item, tabu), iterations, new File(folderNew, neighbours + "_" + prob + "_" + tabu + "_greedy_swap_" + item.getClass().getName() + "_" + iterations + ".csv")));
+                        i += 2;
+                    }
+                    service.submit(new Trainer(new TabuSolver(new RandomTabuInit(), ttp, neighbours, new InverseMutate(), 1, item, tabu), iterations, new File(folderNew, neighbours + "_" + 1 + "_" + tabu + "_random_inverse_" + item.getClass().getName() + "_" + iterations + ".csv")));
+                    service.submit(new Trainer(new TabuSolver(new GreedyBestCity(), ttp, neighbours, new InverseMutate(), 1, item, tabu), iterations, new File(folderNew, neighbours + "_" + 1 + "_" + tabu + "_greedy_inverse_" + item.getClass().getName() + "_" + iterations + ".csv")));
+                    i += 2;
+                }
+            }
+        }
+        System.out.println("STARTED " + i);
+        service.shutdown();
+        if (block) {
+            service.awaitTermination(100, TimeUnit.DAYS);
+        }
+//        Trainer t = new Trainer(new TabuSolver(new RandomTabuInit(), ttp, 200, new InverseMutate(), 0.3, item, 10000), 300, new File("output_tabu_test.csv"));
+//        t.start();
+//        t.join();
+    }
+
+
     private static void random(String file) throws InterruptedException {
         TTP ttp = TTP.loadTTP("dane\\" + file);
         Trainer t = new Trainer(new RandomSolver(ttp, new GreedyPriceOverWeight()), randomAmountRepeat, new File(file.replace(".ttp", "").replace("_", "") + "_output_random.csv"));
@@ -106,6 +149,27 @@ public class Main {
 
     public static void main(String[] args) throws FileNotFoundException, InterruptedException {
         TTP ttp = TTP.loadTTP("dane\\medium_0.ttp");
+//        for(int i = 0; i < 10; i++) {
+//            performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+//        }
+//        for(int i = 0; i < 10; i++) {
+//            performTestForTabu("dane", "medium_0.ttp", true, new GreedyPriceOverWeight());
+//        }
+//        System.exit(0);
+
+//        for(int i = 0; i < 10; i++) {
+//            performTestForTabu("dane", "trivial_0.ttp", true, new GreedyPriceOverWeight());
+//        }
+        performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+        System.exit(0);
+        for (int i = 0; i < 10; i++) {
+            performTestForTabu("dane", "easy_1.ttp", true, new GreedyPriceOverWeight());
+        }
+        System.exit(0);
+        for (int i = 0; i < 10; i++) {
+            performTestForTabu("dane", "hard_0.ttp", true, new GreedyPriceOverWeight());
+        }
+        System.exit(0);
 //        random("easy_0.ttp");
 //        random("easy_1.ttp");
 //        random("easy_2.ttp");
@@ -125,10 +189,11 @@ public class Main {
 //        for(int i = 0; i < 10; i++) {
 //            performTestForRoulette("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
 //        }
-        for (int i = 0; i < 8; i++) {
-            performTest("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-        }
-        System.exit(0);
+//        performTest("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+//        System.exit(0);
+//        for (int i = 0; i < 8; i++) {
+//        }
+//        System.exit(0);
         assert ttp != null;
 
 //        Trainer trainer = new Trainer (new GeneticEvolutionSolver(ttp, 100, new RouletteSelect(), new SwapMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.1), 100, "output_genetic.csv");
@@ -136,9 +201,9 @@ public class Main {
 //        Trainer trainer = new Trainer(new GeneticEvolutionSolver(ttp, 100, new RouletteSelect(10), new SwapMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.05), 100, new File("output_genetic_no_items_roulette.csv"));
 //        Trainer trainer = new Trainer(new GreedySolver(ttp, new GreedyPriceOverWeight()), 100, "output_greedy.csv");
 //        trainer.start();
-//        trainer2.start();
+        trainer2.start();
 //        trainer.join();
-//        trainer2.join();
+        trainer2.join();
         System.exit(0);
 
 //

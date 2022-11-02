@@ -1,5 +1,6 @@
 package org.dzing.genetic;
 
+import org.dzing.base.City;
 import org.dzing.base.ItemChoiceAlgorithm;
 import org.dzing.base.Solver;
 import org.dzing.base.TTP;
@@ -27,7 +28,7 @@ public class GeneticEvolutionSolver extends Solver {
     private final Mutate mutator;
     private final Cross crosser;
     private final TTP.ItemsResponse[] currentGenScores;
-    private int[][] allPopulations;
+    private City[][] allPopulations;
     private Writer debugStream;
     private Double[] sortedScores;
 
@@ -41,7 +42,7 @@ public class GeneticEvolutionSolver extends Solver {
         this.selector = selector;
         this.mutator = mutator;
         this.crosser = crosser;
-        this.allPopulations = new int[populationSize][];
+        this.allPopulations = new City[populationSize][];
         this.currentGenScores = new TTP.ItemsResponse[populationSize];
         this.itemChoiceAlgorithm = itemChoiceAlgorithm;
         this.crossoverChance = crossoverChance;
@@ -75,9 +76,9 @@ public class GeneticEvolutionSolver extends Solver {
     @Override
     public void step() {
         int selected = 0;
-        int[][] newPopulation = new int[populationSize][];
+        City[][] newPopulation = new City[populationSize][];
         while (selected < this.populationSize) {
-            int[][] selectedPopulation;
+            City[][] selectedPopulation;
             if (this.populationSize - selected == 1) {
                 selectedPopulation = Solver.deepArrayCopy(selector.select(allPopulations, currentGenScores, 1));
             } else if (random.nextFloat() < crossoverChance) {
@@ -87,7 +88,7 @@ public class GeneticEvolutionSolver extends Solver {
                 selectedPopulation = Solver.deepArrayCopy(selector.select(allPopulations, currentGenScores, 1));
             }
 
-            for (int[] element : selectedPopulation) {
+            for (City[] element : selectedPopulation) {
                 mutator.mutate(element, this.mutationChance);
                 newPopulation[selected] = element;
                 selected++;

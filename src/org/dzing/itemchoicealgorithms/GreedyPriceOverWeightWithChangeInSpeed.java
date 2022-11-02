@@ -18,10 +18,9 @@ public class GreedyPriceOverWeightWithChangeInSpeed implements ItemChoiceAlgorit
     }
 
     @Override
-    public TTP.ItemsResponse selectItemsAndScore(TTP ttp, int[] citiesIds) {
+    public TTP.ItemsResponse selectItemsAndScore(TTP ttp, City[] citiesInOrder) {
         int weight = 0;
         List<Item> items = new ArrayList<>();
-        City[] citiesInOrder = ttp.getAsCities(citiesIds);
         for (City c : citiesInOrder) {
             List<Item> set = Arrays.stream(c.getItems()).sorted(Comparator.comparingDouble(it -> changeInWeightWithItem(ttp, it))).collect(Collectors.toList());
             for (Item i : set) {

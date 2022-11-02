@@ -1,6 +1,8 @@
 package org.dzing.genetic.base;
 
+import org.dzing.base.City;
+
 public interface Cross {
 
-    int[][] cross(int[] firstParent, int[] secondParent);
+    City[][] cross(City[] firstParent, City[] secondParent);
 }

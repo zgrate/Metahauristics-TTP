@@ -1,5 +1,8 @@
 package org.dzing.base;
 
+import org.dzing.Main;
+import org.dzing.tabu.TabuSolver;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -23,15 +26,29 @@ public class Trainer extends Thread {
             solver.setDebugStream(writer);
             solver.init();
             for (int i = 0; i < numberOfIterations; i++) {
-                System.out.println("ITeration " + i + " goings");
+                if (Main.ECHO)
+                    System.out.println("ITeration " + i + " goings");
                 writer.print(i + ";");
                 solver.step();
-                writer.println(solver.getBestSolutionStep() + ";" + solver.getAverageSolutionScore() + ";" + solver.getWorstSolutionStep());
+                writer.print(solver.getBestSolutionStep() + ";" + solver.getAverageSolutionScore() + ";" + solver.getWorstSolutionStep());
+                if (solver instanceof TabuSolver) {
+                    writer.print(";" + ((TabuSolver) solver).getBestInCurrent());
+                }
+                writer.println();
             }
-            writer.println("" + "FINAL" + ";" + solver.getBestSolutionStep() + ";" + solver.getAverageSolutionScore() + ";" + solver.getWorstSolutionStep() + ";");
+            writer.print("" + "FINAL" + ";" + solver.getBestSolutionStep() + ";" + solver.getAverageSolutionScore() + ";" + solver.getWorstSolutionStep());
+            if (solver instanceof TabuSolver) {
+                writer.print(";" + ((TabuSolver) solver).getBestInCurrent());
+            }
+            writer.println();
+            writer.flush();
+
             System.out.println("FINISHED " + outputFile.getName());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(1);
         }
 
 

@@ -1,5 +1,6 @@
 package org.dzing.genetic.selections;
 
+import org.dzing.base.City;
 import org.dzing.base.TTP;
 import org.dzing.genetic.base.Select;
 
@@ -37,19 +38,19 @@ public class RouletteSelect implements Select {
     }
 
     @Override
-    public int[][] select(int[][] population, TTP.ItemsResponse[] scores, int selectNumber) {
+    public City[][] select(City[][] population, TTP.ItemsResponse[] scores, int selectNumber) {
         double minWeight = Arrays.stream(scores).map(TTP.ItemsResponse::getCurrentResult).min(Comparator.naturalOrder()).orElseThrow() * pressure;
         if (minWeight < 0) {
             minWeight = -minWeight;
         }
-        WeightedRandomBag<int[]> bag = new WeightedRandomBag<>();
+        WeightedRandomBag<City[]> bag = new WeightedRandomBag<>();
         for (int j = 0; j < population.length; j++) {
 //            System.out.println(scores[j].getCurrentResult() + " is now " + Math.pow((scores[j].getCurrentResult()+minWeight)*pressure, 1));
             bag.addEntry(population[j], Math.pow((scores[j].getCurrentResult() + minWeight) * pressure, 1));
         }
 
 //        List<Integer> selectedIds = new ArrayList<>();
-        int[][] arra = new int[selectNumber][];
+        City[][] arra = new City[selectNumber][];
         for (int i = 0; i < selectNumber; i++) {
             arra[i] = bag.getRandom();
 //            if(i == 0){

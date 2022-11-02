@@ -1,5 +1,6 @@
 package org.dzing.hauristics;
 
+import org.dzing.base.City;
 import org.dzing.base.ItemChoiceAlgorithm;
 import org.dzing.base.Solver;
 import org.dzing.base.TTP;
@@ -8,12 +9,12 @@ import java.util.Random;
 
 public class RandomSolver extends Solver {
 
-    private int[] solution;
+    private City[] solution;
     private TTP.ItemsResponse response;
     private TTP ttp;
     private ItemChoiceAlgorithm itemChoiceAlgorithm;
 
-    public static int[] generateRandomSolution(TTP ttp) {
+    public static City[] generateRandomSolution(TTP ttp) {
         int[] cities = new int[ttp.getDimension()];
         for (int i = 0; i < cities.length; i++) {
             cities[i] = i;
@@ -25,7 +26,7 @@ public class RandomSolver extends Solver {
             cities[randomIndexToSwap] = cities[i];
             cities[i] = temp;
         }
-        return cities;
+        return ttp.getAsCities(cities);
     }
 
     public RandomSolver(TTP ttp, ItemChoiceAlgorithm itemChoiceAlgorithm) {
