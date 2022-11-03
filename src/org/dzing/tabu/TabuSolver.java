@@ -53,6 +53,8 @@ return sBest
     TTP.ItemsResponse[] neighbours;
     TTP.ItemsResponse bestInIteration;
 
+    TTP.ItemsResponse globalBest;
+
     public TabuSolver(TabuInitializer initializer, TTP ttp, int numberOfNeighbours, Mutate neighborGenerator, double mutationChance, ItemChoiceAlgorithm itemChoiceAlgorithm, int maxTabuSize) {
         this.initializer = initializer;
         this.ttp = ttp;
@@ -65,15 +67,15 @@ return sBest
 
     @Override
     public void init() {
-        neighbours = new TTP.ItemsResponse[1];
-        neighbours[0] = initializer.initialize(ttp, itemChoiceAlgorithm);
+//        neighbours = new TTP.ItemsResponse[1];
+        globalBest = initializer.initialize(ttp, itemChoiceAlgorithm);
     }
 
     private TTP.ItemsResponse[] generateNeighbours() {
         TTP.ItemsResponse[] neight = new TTP.ItemsResponse[numberOfNeighbours];
-        TTP.ItemsResponse best = neighbours[0];
-        neight[0] = best;
-        for (int i = 1; i < neight.length; i++) {
+        TTP.ItemsResponse best = globalBest;
+//        neight[0] = best;
+        for (int i = 0; i < neight.length; i++) {
 //            int[] current = Arrays.stream(best.cities).mapToInt(it -> it.getId()-1).toArray();
             City[] cities = Arrays.copyOfRange(best.cities, 0, best.cities.length);
             neighborGenerator.mutate(cities, mutationChance);
@@ -93,13 +95,21 @@ return sBest
 //                currentBest = neighbours[i];
 //            }
 //        }
-        if (tabuList.contains(currentBest)) {
+        if (!tabuList.contains(currentBest)) {
             tabuList.add(currentBest);
-            bestInIteration = currentBest;
-        } else {
-            tabuList.add(neighbours[1]);
-            bestInIteration = neighbours[1];
+            if (currentBest.getCurrentResult() > globalBest.getCurrentResult()) {
+                globalBest = currentBest;
+            }
         }
+
+
+//        if (tabuList.contains(currentBest)) {
+//            tabuList.add(currentBest);
+//            bestInIteration = currentBest;
+//        } else {
+//            tabuList.add(neighbours[1]);
+//            bestInIteration = neighbours[1];
+//        }
         if (tabuList.size() > maxTabuSize) {
             tabuList.remove(0);
         }
@@ -118,6 +128,11 @@ return sBest
     @Override
     public double getWorstSolutionStep() {
         return neighbours[neighbours.length - 1].getCurrentResult();
+    }
+
+    @Override
+    public double getGlobalBest() {
+        return globalBest.getCurrentResult();
     }
 
     public double getBestInCurrent() {

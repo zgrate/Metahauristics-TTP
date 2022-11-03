@@ -26,6 +26,8 @@ public abstract class Solver {
 
     public abstract double getWorstSolutionStep();
 
+    public abstract double getGlobalBest();
+
     public void setDebugStream(PrintWriter debugStream) {
         this.debugStream = debugStream;
     }

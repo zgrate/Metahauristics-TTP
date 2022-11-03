@@ -1,7 +1,6 @@
 package org.dzing.base;
 
 import org.dzing.Main;
-import org.dzing.tabu.TabuSolver;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,7 +21,16 @@ public class Trainer extends Thread {
     @Override
     public void run() {
         try (PrintWriter writer = new PrintWriter(outputFile)) {
-
+            writer.print("iter;MAX;AVR;MIN;BEST");
+//            if(solver instanceof TabuSolver)
+//            {
+//                writer.print(";BEST");
+//            }
+//            if(solver instanceof SASolver)
+//            {
+//                writer.print(";BEST;StatsBest");
+//            }
+            writer.println();
             solver.setDebugStream(writer);
             solver.init();
             for (int i = 0; i < numberOfIterations; i++) {
@@ -30,16 +38,22 @@ public class Trainer extends Thread {
                     System.out.println("ITeration " + i + " goings");
                 writer.print(i + ";");
                 solver.step();
-                writer.print(solver.getBestSolutionStep() + ";" + solver.getAverageSolutionScore() + ";" + solver.getWorstSolutionStep());
-                if (solver instanceof TabuSolver) {
-                    writer.print(";" + ((TabuSolver) solver).getBestInCurrent());
-                }
+                writer.print(solver.getBestSolutionStep() + ";" + solver.getAverageSolutionScore() + ";" + solver.getWorstSolutionStep() + ";" + solver.getGlobalBest());
+//                if (solver instanceof TabuSolver) {
+//                    writer.print(";" + ((TabuSolver) solver).getBestInCurrent());
+//                }
+//                if (solver instanceof SASolver) {
+//                    writer.print(";" + ((SASolver) solver).getGlobalBestSolution()+";"+((SASolver)solver).getStatsBest());
+//                }
                 writer.println();
             }
-            writer.print("" + "FINAL" + ";" + solver.getBestSolutionStep() + ";" + solver.getAverageSolutionScore() + ";" + solver.getWorstSolutionStep());
-            if (solver instanceof TabuSolver) {
-                writer.print(";" + ((TabuSolver) solver).getBestInCurrent());
-            }
+            writer.print("" + "FINAL" + ";" + solver.getBestSolutionStep() + ";" + solver.getAverageSolutionScore() + ";" + solver.getWorstSolutionStep() + ";" + solver.getGlobalBest());
+//            if (solver instanceof TabuSolver) {
+//                writer.print(";" + ((TabuSolver) solver).getBestInCurrent());
+//            }
+//            if (solver instanceof SASolver) {
+//                writer.print(";" + ((SASolver) solver).getGlobalBestSolution()+";"+((SASolver)solver).getStatsBest());
+//            }
             writer.println();
             writer.flush();
 

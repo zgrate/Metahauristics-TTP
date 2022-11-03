@@ -32,6 +32,8 @@ public class GeneticEvolutionSolver extends Solver {
     private Writer debugStream;
     private Double[] sortedScores;
 
+    private double globalStatistic;
+
     /*
         Selekcja osobnika -> Czy krzyżujemy? Jak tak, to bierzemy kolejnego, i krzyżujemy, jeżeli nie, to mutacja i prawdopodobnieństwo, powtarzamy, aż mamy całą listę
      */
@@ -60,6 +62,7 @@ public class GeneticEvolutionSolver extends Solver {
             allPopulations[i] = RandomSolver.generateRandomSolution(ttp);
         }
         scoreAll();
+
     }
 
 
@@ -68,6 +71,7 @@ public class GeneticEvolutionSolver extends Solver {
             this.currentGenScores[i] = itemChoiceAlgorithm.selectItemsAndScore(ttp, allPopulations[i]);
         }
         sortedScores = Arrays.stream(currentGenScores).map(TTP.ItemsResponse::getCurrentResult).sorted(Comparator.reverseOrder()).toArray(Double[]::new);
+        globalStatistic = sortedScores[0];
 //        sortedScores = Arrays.stream(currentGenScores).map(TTP.ItemsResponse::getCurrentResult).sorted(Comparator.reverseOrder()).toArray(Double[]::new);
 
     }
@@ -112,5 +116,10 @@ public class GeneticEvolutionSolver extends Solver {
     @Override
     public double getWorstSolutionStep() {
         return this.sortedScores[sortedScores.length - 1];
+    }
+
+    @Override
+    public double getGlobalBest() {
+        return globalStatistic;
     }
 }

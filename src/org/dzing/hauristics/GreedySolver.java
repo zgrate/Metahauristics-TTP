@@ -77,6 +77,11 @@ public class GreedySolver extends Solver {
         return score.getCurrentResult();
     }
 
+    @Override
+    public double getGlobalBest() {
+        return 0;
+    }
+
     public TTP.ItemsResponse getStepResponse() {
         return score;
     }

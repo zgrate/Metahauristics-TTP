@@ -61,4 +61,9 @@ public class RandomSolver extends Solver {
         return response.currentResult;
     }
 
+    @Override
+    public double getGlobalBest() {
+        return 0;
+    }
+
 }

@@ -12,6 +12,8 @@ import org.dzing.genetic.selections.RouletteSelect;
 import org.dzing.genetic.selections.TournamentSelect;
 import org.dzing.hauristics.RandomSolver;
 import org.dzing.itemchoicealgorithms.GreedyPriceOverWeight;
+import org.dzing.sa.SASolver;
+import org.dzing.sa.StandardTempAlgo;
 import org.dzing.tabu.TabuSolver;
 import org.dzing.tabu.initializers.GreedyBestCity;
 import org.dzing.tabu.initializers.RandomTabuInit;
@@ -139,6 +141,22 @@ public class Main {
 //        t.join();
     }
 
+    private static void performTestForSA(String folder, String file, boolean block, ItemChoiceAlgorithm itemChoiceAlgorithm) throws InterruptedException {
+        ExecutorService service = Executors.newFixedThreadPool(6);
+        File folderNew = new File("D:\\Metahauristics_Results\\sa\\" + file + "_directory_" + System.currentTimeMillis() + "_sa");
+//        folderNew.mkdirs();
+        TTP ttp = TTP.loadTTP(Path.of(folder, file).toString());
+        assert ttp != null;
+        int i = 0;
+        service.submit(new Trainer(new SASolver(ttp, itemChoiceAlgorithm, 200, new RandomTabuInit(), new SwapMutate(), 0.2, new StandardTempAlgo(1)), 1000, new File("test.csv")));
+
+        service.shutdown();
+        if (block) {
+            service.awaitTermination(100, TimeUnit.DAYS);
+        }
+
+
+    }
 
     private static void random(String file) throws InterruptedException {
         TTP ttp = TTP.loadTTP("dane\\" + file);
@@ -148,7 +166,11 @@ public class Main {
     }
 
     public static void main(String[] args) throws FileNotFoundException, InterruptedException {
-        TTP ttp = TTP.loadTTP("dane\\medium_0.ttp");
+//        performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+//        System.exit(0);
+        performTestForSA("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+        System.exit(0);
+//        TTP ttp = TTP.loadTTP("dane\\medium_0.ttp");
 //        for(int i = 0; i < 10; i++) {
 //            performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
 //        }
@@ -194,17 +216,17 @@ public class Main {
 //        for (int i = 0; i < 8; i++) {
 //        }
 //        System.exit(0);
-        assert ttp != null;
-
-//        Trainer trainer = new Trainer (new GeneticEvolutionSolver(ttp, 100, new RouletteSelect(), new SwapMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.1), 100, "output_genetic.csv");
-        Trainer trainer2 = new Trainer(new GeneticEvolutionSolver(ttp, 100, new TournamentSelect(2), new InverseMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.6), 1000, new File("output_genetic_no_items_tournament.csv"));
-//        Trainer trainer = new Trainer(new GeneticEvolutionSolver(ttp, 100, new RouletteSelect(10), new SwapMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.05), 100, new File("output_genetic_no_items_roulette.csv"));
-//        Trainer trainer = new Trainer(new GreedySolver(ttp, new GreedyPriceOverWeight()), 100, "output_greedy.csv");
-//        trainer.start();
-        trainer2.start();
-//        trainer.join();
-        trainer2.join();
-        System.exit(0);
+//        assert ttp != null;
+//
+////        Trainer trainer = new Trainer (new GeneticEvolutionSolver(ttp, 100, new RouletteSelect(), new SwapMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.1), 100, "output_genetic.csv");
+//        Trainer trainer2 = new Trainer(new GeneticEvolutionSolver(ttp, 100, new TournamentSelect(2), new InverseMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.6), 1000, new File("output_genetic_no_items_tournament.csv"));
+////        Trainer trainer = new Trainer(new GeneticEvolutionSolver(ttp, 100, new RouletteSelect(10), new SwapMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.05), 100, new File("output_genetic_no_items_roulette.csv"));
+////        Trainer trainer = new Trainer(new GreedySolver(ttp, new GreedyPriceOverWeight()), 100, "output_greedy.csv");
+////        trainer.start();
+//        trainer2.start();
+////        trainer.join();
+//        trainer2.join();
+//        System.exit(0);
 
 //
 //        for (int index = 0; index < 1; index++) {

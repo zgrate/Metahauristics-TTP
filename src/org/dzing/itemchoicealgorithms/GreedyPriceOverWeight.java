@@ -18,13 +18,13 @@ public class GreedyPriceOverWeight implements ItemChoiceAlgorithm {
         for (City c : ttp.cities) {
             Item[] cityItems = c.getItems();
             Arrays.sort(cityItems, (o1, o2) -> Double.compare(o2.getProfitToWeight(), o1.getProfitToWeight()));
-            Arrays.stream(cityItems).forEach(it -> System.out.println(it.getProfitToWeight()));
+//            Arrays.stream(cityItems).forEach(it -> System.out.println(it.getProfitToWeight()));
 //            List<Item> items = Arrays.stream(c.getItems())
 //                    .sorted(Comparator.comparingDouble(Item::getProfitToWeight).reversed())
 //                    .collect(Collectors.toList());
             internal.put(c.getId(), Arrays.stream(cityItems).toList());
         }
-        System.out.println(internal);
+//        System.out.println(internal);
         reversedSortedItemsSet = internal;
     }
 
