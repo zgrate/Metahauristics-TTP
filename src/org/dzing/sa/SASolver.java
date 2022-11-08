@@ -43,7 +43,9 @@ public class SASolver extends Solver {
         for (int i = 0; i < neight.length; i++) {
 //            int[] current = Arrays.stream(best.cities).mapToInt(it -> it.getId()-1).toArray();
             City[] cities = Arrays.copyOfRange(best.cities, 0, best.cities.length);
+//            while(Arrays.equals(best.cities, cities)) {
             neighborGenerator.mutate(cities, mutationChance);
+//            }
             neight[i] = itemChoiceAlgorithm.selectItemsAndScore(ttp, cities);
         }
         return neight;
@@ -62,16 +64,21 @@ public class SASolver extends Solver {
         if (statsBest == null || currentBest.currentResult > statsBest.currentResult) {
             statsBest = currentBest;
         }
-        if (globalBest == null || currentBest.currentResult > globalBest.currentResult) {
+        if (globalBest == null || currentBest.currentResult >= globalBest.currentResult) {
+//            System.out.println("new best " + currentBest.getCurrentResult());
             globalBest = currentBest;
         } else if (temperatureAlgo.temperatureChance(ttp, globalBest, currentBest)) {
+//            System.out.println("SEtting " + currentBest.getCurrentResult() + " from "+ globalBest.getCurrentResult() );
             globalBest = currentBest;
         }
+//        else{
+//            System.out.println("no new best");
+//        }
     }
 
     @Override
     public double getBestSolutionStep() {
-        return neighbours[0].getCurrentResult();
+        return globalBest.getCurrentResult();
     }
 
     @Override

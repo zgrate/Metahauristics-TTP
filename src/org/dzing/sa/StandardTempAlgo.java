@@ -6,17 +6,23 @@ import java.util.Random;
 
 public class StandardTempAlgo implements TemperatureAlgo {
 
-    int startTemp;
+    private final double cutoff;
+    double dividor;
+    double startTemp;
     Random random = new Random();
 
-    public StandardTempAlgo(int startTemp) {
+    public StandardTempAlgo(int dividor, int startTemp, double cutoff) {
         this.startTemp = startTemp;
+        this.dividor = dividor;
+        this.cutoff = cutoff;
     }
 
     @Override
     public boolean temperatureChance(TTP ttp, TTP.ItemsResponse best, TTP.ItemsResponse current) {
         startTemp++;
-//        System.out.println((current.getCurrentResult())/(startTemp*10));
-        return random.nextFloat() < (1.0) / (startTemp);
+//        System.out.println(dividor/startTemp);
+
+        double res = (dividor / startTemp);
+        return !(res < cutoff) && random.nextFloat() < res;
     }
 }

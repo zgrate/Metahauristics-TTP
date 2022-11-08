@@ -142,13 +142,34 @@ public class Main {
     }
 
     private static void performTestForSA(String folder, String file, boolean block, ItemChoiceAlgorithm itemChoiceAlgorithm) throws InterruptedException {
+        TTP ttp = TTP.loadTTP(Path.of(folder, file).toString());
+
+//        Trainer t = new Trainer(new SASolver(ttp, itemChoiceAlgorithm, 100, new RandomTabuInit(), new InverseMutate(), 1, new StandardTempAlgo(40, 500, 0.05)), 1500, new File("test.csv"));
+//        t.start();
+//        t.join();
+//        System.exit(0);
+
         ExecutorService service = Executors.newFixedThreadPool(6);
         File folderNew = new File("D:\\Metahauristics_Results\\sa\\" + file + "_directory_" + System.currentTimeMillis() + "_sa");
-//        folderNew.mkdirs();
-        TTP ttp = TTP.loadTTP(Path.of(folder, file).toString());
+        folderNew.mkdirs();
         assert ttp != null;
         int i = 0;
-        service.submit(new Trainer(new SASolver(ttp, itemChoiceAlgorithm, 200, new RandomTabuInit(), new SwapMutate(), 0.2, new StandardTempAlgo(1)), 1000, new File("test.csv")));
+        for (int generations = 100; generations < 301; generations += 100) {
+            for (int neighbours = 50; neighbours < 300; neighbours += 50) {
+                for (int startTemp = 1; startTemp < 50; startTemp += 10) {
+                    for (double mutChance = 0.0; mutChance < 0.5; mutChance += 0.1) {
+                        service.submit(new Trainer(new SASolver(ttp, itemChoiceAlgorithm, neighbours, new RandomTabuInit(), new SwapMutate(), mutChance, new StandardTempAlgo(startTemp, 1, 0.05)), generations, new File(folderNew, neighbours + "_" + mutChance + "_" + startTemp + "_random_swap_" + itemChoiceAlgorithm.getClass().getName() + "_" + generations + ".csv")));
+                        service.submit(new Trainer(new SASolver(ttp, itemChoiceAlgorithm, neighbours, new GreedyBestCity(), new SwapMutate(), mutChance, new StandardTempAlgo(startTemp, 1, 0.05)), generations, new File(folderNew, neighbours + "_" + mutChance + "_" + startTemp + "_greedy_swap_" + itemChoiceAlgorithm.getClass().getName() + "_" + generations + ".csv")));
+
+                    }
+                    service.submit(new Trainer(new SASolver(ttp, itemChoiceAlgorithm, neighbours, new RandomTabuInit(), new InverseMutate(), 1, new StandardTempAlgo(startTemp, 1, 0.05)), generations, new File(folderNew, neighbours + "_" + 1 + "_" + startTemp + "_random_inverse_" + itemChoiceAlgorithm.getClass().getName() + "_" + generations + ".csv")));
+                    service.submit(new Trainer(new SASolver(ttp, itemChoiceAlgorithm, neighbours, new GreedyBestCity(), new InverseMutate(), 1, new StandardTempAlgo(startTemp, 1, 0.05)), generations, new File(folderNew, neighbours + "_" + 1 + "_" + startTemp + "_greedy_inverse_" + itemChoiceAlgorithm.getClass().getName() + "_" + generations + ".csv")));
+
+                }
+            }
+        }
+
+//        service.submit(new Trainer(new SASolver(ttp, itemChoiceAlgorithm, 200, new RandomTabuInit(), new SwapMutate(), 0.2, new StandardTempAlgo(1)), 1000, new File("test.csv")));
 
         service.shutdown();
         if (block) {
@@ -168,28 +189,30 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException, InterruptedException {
 //        performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
 //        System.exit(0);
-        performTestForSA("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-        System.exit(0);
+//        performTestForSA("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+
+//        System.exit(0);
 //        TTP ttp = TTP.loadTTP("dane\\medium_0.ttp");
 //        for(int i = 0; i < 10; i++) {
-//            performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+//            performTestForSA("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
 //        }
-//        for(int i = 0; i < 10; i++) {
-//            performTestForTabu("dane", "medium_0.ttp", true, new GreedyPriceOverWeight());
-//        }
+        for (int i = 0; i < 10; i++) {
+            performTestForSA("dane", "medium_0.ttp", true, new GreedyPriceOverWeight());
+            System.exit(0);
+        }
 //        System.exit(0);
 
-//        for(int i = 0; i < 10; i++) {
-//            performTestForTabu("dane", "trivial_0.ttp", true, new GreedyPriceOverWeight());
-//        }
-        performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-        System.exit(0);
         for (int i = 0; i < 10; i++) {
-            performTestForTabu("dane", "easy_1.ttp", true, new GreedyPriceOverWeight());
+            performTestForSA("dane", "trivial_0.ttp", true, new GreedyPriceOverWeight());
         }
-        System.exit(0);
+//        performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+//        System.exit(0);
         for (int i = 0; i < 10; i++) {
-            performTestForTabu("dane", "hard_0.ttp", true, new GreedyPriceOverWeight());
+            performTestForSA("dane", "easy_1.ttp", true, new GreedyPriceOverWeight());
+        }
+//        System.exit(0);
+        for (int i = 0; i < 10; i++) {
+            performTestForSA("dane", "hard_0.ttp", true, new GreedyPriceOverWeight());
         }
         System.exit(0);
 //        random("easy_0.ttp");
