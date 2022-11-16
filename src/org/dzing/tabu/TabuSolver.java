@@ -8,7 +8,6 @@ import org.dzing.genetic.base.Mutate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 public class TabuSolver extends Solver {
@@ -54,6 +53,9 @@ return sBest
     TTP.ItemsResponse bestInIteration;
 
     TTP.ItemsResponse globalBest;
+    private TTP.ItemsResponse best;
+    private TTP.ItemsResponse worst;
+    private double avarage;
 
     public TabuSolver(TabuInitializer initializer, TTP ttp, int numberOfNeighbours, Mutate neighborGenerator, double mutationChance, ItemChoiceAlgorithm itemChoiceAlgorithm, int maxTabuSize) {
         this.initializer = initializer;
@@ -74,11 +76,13 @@ return sBest
     private TTP.ItemsResponse[] generateNeighbours() {
         TTP.ItemsResponse[] neight = new TTP.ItemsResponse[numberOfNeighbours];
         TTP.ItemsResponse best = globalBest;
-//        neight[0] = best;
         for (int i = 0; i < neight.length; i++) {
 //            int[] current = Arrays.stream(best.cities).mapToInt(it -> it.getId()-1).toArray();
             City[] cities = Arrays.copyOfRange(best.cities, 0, best.cities.length);
-            neighborGenerator.mutate(cities, mutationChance);
+            int repeat = 0;
+            while (Arrays.equals(best.cities, cities) && repeat++ < 100) {
+                neighborGenerator.mutate(cities, mutationChance);
+            }
             neight[i] = itemChoiceAlgorithm.selectItemsAndScore(ttp, cities);
         }
         return neight;
@@ -87,8 +91,24 @@ return sBest
     @Override
     public void step() {
         neighbours = generateNeighbours();
-        Arrays.sort(neighbours, Comparator.comparingDouble(TTP.ItemsResponse::getCurrentResult).reversed());
-        TTP.ItemsResponse currentBest = neighbours[0];
+//        Arrays.sort(neighbours, Comparator.comparingDouble(TTP.ItemsResponse::getCurrentResult).reversed());
+        TTP.ItemsResponse best = null, worst = null;
+        double sum = 0;
+        for (TTP.ItemsResponse neighbour : neighbours) {
+            sum += neighbour.getCurrentResult();
+            if (best == null || best.getCurrentResult() < neighbour.getCurrentResult()) {
+                best = neighbour;
+            }
+            if (worst == null || worst.getCurrentResult() > neighbour.getCurrentResult()) {
+                worst = neighbour;
+            }
+        }
+        this.best = best;
+        this.worst = worst;
+        this.avarage = sum / neighbours.length;
+
+
+        TTP.ItemsResponse currentBest = best;
 
 //        for (int i = 0; i < neighbours.length; i++) {
 //            if(!tabuList.contains(neighbours[i]) && currentBest.getCurrentResult() < neighbours[i].getCurrentResult()){
@@ -117,17 +137,17 @@ return sBest
 
     @Override
     public double getBestSolutionStep() {
-        return neighbours[0].getCurrentResult();
+        return this.best.getCurrentResult();
     }
 
     @Override
     public double getAverageSolutionScore() {
-        return Arrays.stream(neighbours).mapToDouble(TTP.ItemsResponse::getCurrentResult).average().orElseThrow();
+        return this.avarage;
     }
 
     @Override
     public double getWorstSolutionStep() {
-        return neighbours[neighbours.length - 1].getCurrentResult();
+        return this.worst.getCurrentResult();
     }
 
     @Override
@@ -135,7 +155,4 @@ return sBest
         return globalBest.getCurrentResult();
     }
 
-    public double getBestInCurrent() {
-        return bestInIteration.currentResult;
-    }
 }

@@ -8,7 +8,6 @@ import org.dzing.genetic.base.Mutate;
 import org.dzing.tabu.TabuInitializer;
 
 import java.util.Arrays;
-import java.util.Comparator;
 
 public class SASolver extends Solver {
 
@@ -23,6 +22,9 @@ public class SASolver extends Solver {
     private TTP.ItemsResponse globalBest;
     private TTP.ItemsResponse statsBest;
     private TemperatureAlgo temperatureAlgo;
+
+    private double avarage;
+    private TTP.ItemsResponse best, worst;
 
     public SASolver(TTP ttp, ItemChoiceAlgorithm itemChoiceAlgorithm, int numberOfNeighbours, TabuInitializer initializer, Mutate neighborGenerator, double mutationChance, TemperatureAlgo temperatureAlgo) {
 
@@ -43,9 +45,10 @@ public class SASolver extends Solver {
         for (int i = 0; i < neight.length; i++) {
 //            int[] current = Arrays.stream(best.cities).mapToInt(it -> it.getId()-1).toArray();
             City[] cities = Arrays.copyOfRange(best.cities, 0, best.cities.length);
-//            while(Arrays.equals(best.cities, cities)) {
-            neighborGenerator.mutate(cities, mutationChance);
-//            }
+            int repeat = 0;
+            while (Arrays.equals(best.cities, cities) && repeat++ < 100) {
+                neighborGenerator.mutate(cities, mutationChance);
+            }
             neight[i] = itemChoiceAlgorithm.selectItemsAndScore(ttp, cities);
         }
         return neight;
@@ -59,8 +62,23 @@ public class SASolver extends Solver {
     @Override
     public void step() {
         neighbours = generateNeighbours();
-        Arrays.sort(neighbours, Comparator.comparingDouble(TTP.ItemsResponse::getCurrentResult).reversed());
-        TTP.ItemsResponse currentBest = neighbours[0];
+        TTP.ItemsResponse best = null, worst = null;
+        double sum = 0;
+        for (TTP.ItemsResponse neighbour : neighbours) {
+            sum += neighbour.getCurrentResult();
+            if (best == null || best.getCurrentResult() < neighbour.getCurrentResult()) {
+                best = neighbour;
+            }
+            if (worst == null || worst.getCurrentResult() > neighbour.getCurrentResult()) {
+                worst = neighbour;
+            }
+        }
+        this.best = best;
+        this.worst = worst;
+        this.avarage = sum / neighbours.length;
+
+//        Arrays.sort(neighbours, Comparator.comparingDouble(TTP.ItemsResponse::getCurrentResult).reversed());
+        TTP.ItemsResponse currentBest = best;
         if (statsBest == null || currentBest.currentResult > statsBest.currentResult) {
             statsBest = currentBest;
         }
@@ -78,17 +96,19 @@ public class SASolver extends Solver {
 
     @Override
     public double getBestSolutionStep() {
-        return globalBest.getCurrentResult();
+        return this.best.getCurrentResult();
     }
 
     @Override
     public double getAverageSolutionScore() {
-        return Arrays.stream(neighbours).mapToDouble(TTP.ItemsResponse::getCurrentResult).average().orElseThrow();
+        return this.avarage;
+//        return Arrays.stream(neighbours).mapToDouble(TTP.ItemsResponse::getCurrentResult).average().orElseThrow();
+
     }
 
     @Override
     public double getWorstSolutionStep() {
-        return neighbours[neighbours.length - 1].getCurrentResult();
+        return this.worst.getCurrentResult();
     }
 
     @Override
@@ -96,12 +116,4 @@ public class SASolver extends Solver {
         return statsBest.currentResult;
     }
 
-
-    public double getStatsBest() {
-        return statsBest.currentResult;
-    }
-
-    public double getGlobalBestSolution() {
-        return globalBest.currentResult;
-    }
 }

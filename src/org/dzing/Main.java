@@ -10,6 +10,7 @@ import org.dzing.genetic.mutate.InverseMutate;
 import org.dzing.genetic.mutate.SwapMutate;
 import org.dzing.genetic.selections.RouletteSelect;
 import org.dzing.genetic.selections.TournamentSelect;
+import org.dzing.hauristics.GreedySolver;
 import org.dzing.hauristics.RandomSolver;
 import org.dzing.itemchoicealgorithms.GreedyPriceOverWeight;
 import org.dzing.sa.SASolver;
@@ -27,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
+    public static String BASE_DIR = "D:\\Metahauristics_Results\\";
+
     public static boolean ECHO = false;
 
     static int minPopulation = 50, maxPopulation = 450, populationStep = 100;
@@ -43,9 +46,9 @@ public class Main {
     static double minTabuMutationProb = 0.05, maxTabuMutationProb = 0.6, tabuMutationStep = 0.1;
 
 
-    private static void performTest(String folder, String file, boolean block, ItemChoiceAlgorithm algo) throws InterruptedException {
-        ExecutorService service = Executors.newFixedThreadPool(6);
-        File folderNew = new File("D:\\Metahauristics_Results\\" + file + "_directory_" + System.currentTimeMillis() + "_tour");
+    private static void performTestForTournament(String folder, String file, boolean block, ItemChoiceAlgorithm algo) throws InterruptedException {
+        ExecutorService service = Executors.newCachedThreadPool();
+        File folderNew = Path.of(BASE_DIR, file + "_directory_" + System.currentTimeMillis() + "_tour").toFile();
         folderNew.mkdirs();
         TTP ttp = TTP.loadTTP(Path.of(folder, file).toString());
         assert ttp != null;
@@ -79,8 +82,8 @@ public class Main {
     }
 
     private static void performTestForRoulette(String folder, String file, boolean block, ItemChoiceAlgorithm algo) throws InterruptedException {
-        ExecutorService service = Executors.newFixedThreadPool(4);
-        File folderNew = new File("D:\\Metahauristics_Results\\" + file + "_directory_" + System.currentTimeMillis() + "_roul");
+        ExecutorService service = Executors.newCachedThreadPool();
+        File folderNew = Path.of(BASE_DIR, file + "_directory_" + System.currentTimeMillis() + "_roul").toFile();
         folderNew.mkdirs();
         TTP ttp = TTP.loadTTP(Path.of(folder, file).toString());
         assert ttp != null;
@@ -111,8 +114,8 @@ public class Main {
     }
 
     private static void performTestForTabu(String folder, String file, boolean block, ItemChoiceAlgorithm item) throws InterruptedException {
-        ExecutorService service = Executors.newFixedThreadPool(6);
-        File folderNew = new File("D:\\Metahauristics_Results\\tabu\\" + file + "_directory_" + System.currentTimeMillis() + "_tabu");
+        ExecutorService service = Executors.newCachedThreadPool();
+        File folderNew = Path.of(BASE_DIR, file + "_directory_" + System.currentTimeMillis() + "_tabu").toFile();
         folderNew.mkdirs();
         TTP ttp = TTP.loadTTP(Path.of(folder, file).toString());
         assert ttp != null;
@@ -144,13 +147,13 @@ public class Main {
     private static void performTestForSA(String folder, String file, boolean block, ItemChoiceAlgorithm itemChoiceAlgorithm) throws InterruptedException {
         TTP ttp = TTP.loadTTP(Path.of(folder, file).toString());
 
-//        Trainer t = new Trainer(new SASolver(ttp, itemChoiceAlgorithm, 100, new RandomTabuInit(), new InverseMutate(), 1, new StandardTempAlgo(40, 500, 0.05)), 1500, new File("test.csv"));
+//        Trainer t = new Trainer(new SASolver(ttp, itemChoiceAlgorithm, 100, new RandomTabuInit(), new InverseMutate(), 1, new StandardTempAlgo(40, 400, 0.02)), 1500, new File("test.csv"));
 //        t.start();
 //        t.join();
 //        System.exit(0);
 
-        ExecutorService service = Executors.newFixedThreadPool(6);
-        File folderNew = new File("D:\\Metahauristics_Results\\sa\\" + file + "_directory_" + System.currentTimeMillis() + "_sa");
+        ExecutorService service = Executors.newCachedThreadPool();
+        File folderNew = Path.of(BASE_DIR, file + "_directory_" + System.currentTimeMillis() + "_sa").toFile();
         folderNew.mkdirs();
         assert ttp != null;
         int i = 0;
@@ -169,13 +172,13 @@ public class Main {
             }
         }
 
+
 //        service.submit(new Trainer(new SASolver(ttp, itemChoiceAlgorithm, 200, new RandomTabuInit(), new SwapMutate(), 0.2, new StandardTempAlgo(1)), 1000, new File("test.csv")));
 
         service.shutdown();
         if (block) {
             service.awaitTermination(100, TimeUnit.DAYS);
         }
-
 
     }
 
@@ -186,10 +189,44 @@ public class Main {
         t.join();
     }
 
+    public static void executeAllTestsForFile(String file) throws InterruptedException {
+        TTP ttp = TTP.loadTTP(Path.of("dane", file).toString());
+
+        System.out.println("Starting " + file);
+        Trainer t = new Trainer(new GreedySolver(ttp, new GreedyPriceOverWeight()), ttp.cities.length, new File(BASE_DIR, file.replace(".ttp", "").replace("_", "") + "_output_greedy.csv"));
+        Trainer t2 = new Trainer(new RandomSolver(ttp, new GreedyPriceOverWeight()), randomAmountRepeat, new File(BASE_DIR, file.replace(".ttp", "").replace("_", "") + "_output_random.csv"));
+        System.out.println("Generating randoms and greedy...");
+        t.start();
+        t2.start();
+        t.join();
+        t2.join();
+        System.out.println("Starting SA...");
+
+        for (int i = 0; i < 10; i++) {
+            performTestForSA("dane", file, true, new GreedyPriceOverWeight());
+        }
+        System.out.println("Starting TABU");
+        for (int i = 0; i < 10; i++) {
+            performTestForTabu("dane", file, true, new GreedyPriceOverWeight());
+        }
+        System.out.println("Starting roulette");
+        for (int i = 0; i < 10; i++) {
+            performTestForRoulette("dane", file, true, new GreedyPriceOverWeight());
+        }
+        System.out.println("Starting tournament");
+        for (int i = 0; i < 10; i++) {
+            performTestForTournament("dane", file, true, new GreedyPriceOverWeight());
+        }
+    }
+
     public static void main(String[] args) throws FileNotFoundException, InterruptedException {
 //        performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-//        System.exit(0);
+////        System.exit(0);
 //        performTestForSA("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+//        performTestForRoulette("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+//        performTestForTournament("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
+//        System.exit(0);
+
 
 //        System.exit(0);
 //        TTP ttp = TTP.loadTTP("dane\\medium_0.ttp");
@@ -198,7 +235,7 @@ public class Main {
 //        }
         for (int i = 0; i < 10; i++) {
             performTestForSA("dane", "medium_0.ttp", true, new GreedyPriceOverWeight());
-            System.exit(0);
+//            System.exit(0);
         }
 //        System.exit(0);
 

@@ -10,10 +10,7 @@ import org.dzing.genetic.base.Select;
 import org.dzing.hauristics.RandomSolver;
 
 import java.io.Writer;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 public class GeneticEvolutionSolver extends Solver {
 
@@ -27,12 +24,16 @@ public class GeneticEvolutionSolver extends Solver {
     private final Select selector;
     private final Mutate mutator;
     private final Cross crosser;
-    private final TTP.ItemsResponse[] currentGenScores;
-    private City[][] allPopulations;
+    private final TTP.ItemsResponse[] allPopulations;
+    //    private City[][] allPopulations;
     private Writer debugStream;
-    private Double[] sortedScores;
+    //    private Double[] sortedScores;
+    private TTP.ItemsResponse bestScore, worstScore;
+    private double average;
+    ;
 
-    private double globalStatistic;
+
+    private TTP.ItemsResponse globalBest;
 
     /*
         Selekcja osobnika -> Czy krzyżujemy? Jak tak, to bierzemy kolejnego, i krzyżujemy, jeżeli nie, to mutacja i prawdopodobnieństwo, powtarzamy, aż mamy całą listę
@@ -44,8 +45,8 @@ public class GeneticEvolutionSolver extends Solver {
         this.selector = selector;
         this.mutator = mutator;
         this.crosser = crosser;
-        this.allPopulations = new City[populationSize][];
-        this.currentGenScores = new TTP.ItemsResponse[populationSize];
+        this.allPopulations = new TTP.ItemsResponse[populationSize];
+//        this.currentGenScores = new TTP.ItemsResponse[populationSize];
         this.itemChoiceAlgorithm = itemChoiceAlgorithm;
         this.crossoverChance = crossoverChance;
         this.mutationChance = mutationChance;
@@ -58,23 +59,47 @@ public class GeneticEvolutionSolver extends Solver {
 
     @Override
     public void init() {
+
+        City[][] cities = new City[allPopulations.length][];
         for (int i = 0; i < allPopulations.length; i++) {
-            allPopulations[i] = RandomSolver.generateRandomSolution(ttp);
+            cities[i] = RandomSolver.generateRandomSolution(ttp);
         }
-        scoreAll();
+
+        generateScores(cities);
 
     }
 
-
-    private void scoreAll() {
-        for (int i = 0; i < allPopulations.length; i++) {
-            this.currentGenScores[i] = itemChoiceAlgorithm.selectItemsAndScore(ttp, allPopulations[i]);
+    private void generateScores(City[][] scores) {
+        TTP.ItemsResponse best = null, worst = null;
+        double sum = 0;
+        for (int i = 0; i < scores.length; i++) {
+            TTP.ItemsResponse score = itemChoiceAlgorithm.selectItemsAndScore(ttp, scores[i]);
+            this.allPopulations[i] = score;
+            if (best == null || score.getCurrentResult() > best.getCurrentResult()) {
+                best = score;
+            } else if (worst == null || score.getCurrentResult() < worst.getCurrentResult()) {
+                worst = score;
+            }
+            sum += score.getCurrentResult();
         }
-        sortedScores = Arrays.stream(currentGenScores).map(TTP.ItemsResponse::getCurrentResult).sorted(Comparator.reverseOrder()).toArray(Double[]::new);
-        globalStatistic = sortedScores[0];
+        this.average = sum / scores.length;
+        this.bestScore = best;
+        this.worstScore = worst;
+        if (this.globalBest == null || this.bestScore.getCurrentResult() > this.globalBest.getCurrentResult()) {
+            this.globalBest = this.bestScore;
+        }
+
+    }
+
+//    private void invalid_scoreAll() {
+//        for (int i = 0; i < allPopulations.length; i++) {
+//            this.currentGenScores[i] = itemChoiceAlgorithm.selectItemsAndScore(ttp, allPopulations[i]);
+//        }
 //        sortedScores = Arrays.stream(currentGenScores).map(TTP.ItemsResponse::getCurrentResult).sorted(Comparator.reverseOrder()).toArray(Double[]::new);
-
-    }
+//        globalStatistic = sortedScores[0];
+////        sortedScores = Arrays.stream(currentGenScores).map(TTP.ItemsResponse::getCurrentResult).sorted(Comparator.reverseOrder()).toArray(Double[]::new);
+//
+//    }
 
 
     @Override
@@ -84,12 +109,12 @@ public class GeneticEvolutionSolver extends Solver {
         while (selected < this.populationSize) {
             City[][] selectedPopulation;
             if (this.populationSize - selected == 1) {
-                selectedPopulation = Solver.deepArrayCopy(selector.select(allPopulations, currentGenScores, 1));
+                selectedPopulation = Solver.deepArrayCopy(selector.select(allPopulations, 1));
             } else if (random.nextFloat() < crossoverChance) {
-                selectedPopulation = selector.select(allPopulations, currentGenScores, 2);
+                selectedPopulation = selector.select(allPopulations, 2);
                 selectedPopulation = crosser.cross(selectedPopulation[0], selectedPopulation[1]);//CROSSOVERs
             } else {
-                selectedPopulation = Solver.deepArrayCopy(selector.select(allPopulations, currentGenScores, 1));
+                selectedPopulation = Solver.deepArrayCopy(selector.select(allPopulations, 1));
             }
 
             for (City[] element : selectedPopulation) {
@@ -99,27 +124,27 @@ public class GeneticEvolutionSolver extends Solver {
             }
 
         }
-        this.allPopulations = newPopulation;
-        scoreAll();
+        generateScores(newPopulation);
+//        scoreAll();
     }
 
     @Override
     public double getBestSolutionStep() {
-        return this.sortedScores[0];
+        return this.bestScore.getCurrentResult();
     }
 
     @Override
     public double getAverageSolutionScore() {
-        return Arrays.stream(this.sortedScores).collect(Collectors.averagingDouble(Double::doubleValue));
+        return this.average;
     }
 
     @Override
     public double getWorstSolutionStep() {
-        return this.sortedScores[sortedScores.length - 1];
+        return this.worstScore.getCurrentResult();
     }
 
     @Override
     public double getGlobalBest() {
-        return globalStatistic;
+        return this.globalBest.getCurrentResult();
     }
 }

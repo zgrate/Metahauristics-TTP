@@ -12,6 +12,8 @@ public class GreedyPriceOverWeight implements ItemChoiceAlgorithm {
     private TTP lastTTP = null;
     private Map<Integer, List<Item>> reversedSortedItemsSet;
 
+    public static int hit;
+
     private void recalculateLists(TTP ttp) {
         Map<Integer, List<Item>> internal = new HashMap<>();
         lastTTP = ttp;
@@ -35,15 +37,28 @@ public class GreedyPriceOverWeight implements ItemChoiceAlgorithm {
         return reversedSortedItemsSet.get(city.getId());
     }
 
+    private Map<Integer, TTP.ItemsResponse> responses = new HashMap<>();
+
+    private TTP.ItemsResponse checkResponse(City[] cities) {
+        hit += 1;
+        return responses.get(Arrays.hashCode(cities));
+    }
+
     @Override
     public TTP.ItemsResponse selectItemsAndScore(TTP ttp, City[] citiesInOrder) {
+//        TTP.ItemsResponse check = checkResponse(citiesInOrder);
+//        if(check != null){
+//            return check;
+//        }
         int weight = 0;
         List<Item> items = new ArrayList<>();
         for (City c : citiesInOrder) {
             List<Item> set = getSortedInCity(ttp, c);
             for (Item i : set) {
                 if (weight + i.getWeight() > ttp.capacity) {
-                    return new TTP.ItemsResponse(ttp, items, (citiesInOrder));
+                    TTP.ItemsResponse res = new TTP.ItemsResponse(ttp, items, (citiesInOrder));
+//                    responses.put(Arrays.hashCode(citiesInOrder), res);
+                    return res;
                 } else {
                     items.add(i);
                     weight += i.getWeight();
@@ -51,6 +66,8 @@ public class GreedyPriceOverWeight implements ItemChoiceAlgorithm {
             }
 
         }
-        return new TTP.ItemsResponse(ttp, items, (citiesInOrder));
+        TTP.ItemsResponse res = new TTP.ItemsResponse(ttp, items, (citiesInOrder));
+//        responses.put(Arrays.hashCode(citiesInOrder), res);
+        return res;
     }
 }

@@ -38,15 +38,15 @@ public class RouletteSelect implements Select {
     }
 
     @Override
-    public City[][] select(City[][] population, TTP.ItemsResponse[] scores, int selectNumber) {
-        double minWeight = Arrays.stream(scores).map(TTP.ItemsResponse::getCurrentResult).min(Comparator.naturalOrder()).orElseThrow() * pressure;
+    public City[][] select(TTP.ItemsResponse[] population, int selectNumber) {
+        double minWeight = Arrays.stream(population).map(TTP.ItemsResponse::getCurrentResult).min(Comparator.naturalOrder()).orElseThrow() * pressure;
         if (minWeight < 0) {
             minWeight = -minWeight;
         }
         WeightedRandomBag<City[]> bag = new WeightedRandomBag<>();
-        for (int j = 0; j < population.length; j++) {
+        for (TTP.ItemsResponse itemsResponse : population) {
 //            System.out.println(scores[j].getCurrentResult() + " is now " + Math.pow((scores[j].getCurrentResult()+minWeight)*pressure, 1));
-            bag.addEntry(population[j], Math.pow((scores[j].getCurrentResult() + minWeight) * pressure, 1));
+            bag.addEntry(itemsResponse.getCities(), Math.pow((itemsResponse.getCurrentResult() + minWeight) * pressure, 1));
         }
 
 //        List<Integer> selectedIds = new ArrayList<>();

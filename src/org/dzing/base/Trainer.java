@@ -2,15 +2,16 @@ package org.dzing.base;
 
 import org.dzing.Main;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
 
 public class Trainer extends Thread {
+
+    private static boolean BUFFER_MODE = true;
 
     private final File outputFile;
     private Solver solver;
     private int numberOfIterations;
+
 
     public Trainer(Solver solver, int numberOfIterations, File outputFile) {
         this.solver = solver;
@@ -20,7 +21,7 @@ public class Trainer extends Thread {
 
     @Override
     public void run() {
-        try (PrintWriter writer = new PrintWriter(outputFile)) {
+        try (PrintWriter writer = BUFFER_MODE ? new PrintWriter(new InMemoryStringBuffer(outputFile)) : new PrintWriter(outputFile);) {
             writer.print("iter;MAX;AVR;MIN;BEST");
 //            if(solver instanceof TabuSolver)
 //            {
@@ -66,5 +67,36 @@ public class Trainer extends Thread {
         }
 
 
+    }
+
+    public class InMemoryStringBuffer extends Writer {
+        private final File outputFile;
+        StringBuffer string = new StringBuffer();
+
+        public InMemoryStringBuffer(File outputFile) {
+            this.outputFile = outputFile;
+        }
+
+        public void dumpStringToFile() throws IOException {
+            System.out.println("Dumping to file...");
+            try (PrintWriter writer = new PrintWriter(outputFile)) {
+                writer.print(string.toString());
+            }
+        }
+
+        @Override
+        public void write(char[] cbuf, int off, int len) throws IOException {
+            string.append(cbuf, off, len);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            //nothign
+        }
+
+        @Override
+        public void close() throws IOException {
+            dumpStringToFile();
+        }
     }
 }

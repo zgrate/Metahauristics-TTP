@@ -24,8 +24,8 @@ public class TournamentSelect implements Select {
         return false;
     }
 
-    private City[] selectOne(City[][] population, TTP.ItemsResponse[] scores) {
-        City[] best = null;
+    private City[] selectOne(TTP.ItemsResponse[] population) {
+        TTP.ItemsResponse best = null;
         double score = 0;
 
 
@@ -36,23 +36,23 @@ public class TournamentSelect implements Select {
                 index = random.nextInt(population.length);
             }
             shuffledValues.add(index);
-            if (best == null || scores[index].getCurrentResult() >= score) {
-                score = scores[index].getCurrentResult();
+            if (best == null || population[index].getCurrentResult() >= score) {
+                score = population[index].getCurrentResult();
                 best = population[index];
             }
         }
-        return best;
+        return best.getCities();
     }
 
     @Override
-    public City[][] select(City[][] population, TTP.ItemsResponse[] scores, int selectNumber) {
+    public City[][] select(TTP.ItemsResponse[] population, int selectNumber) {
         City[][] response = new City[selectNumber][];
 //        response[0] = selectOne(population, scores);
         for (int i = 0; i < selectNumber; i++) {
 //            while(contains(response, sel)){
 //                sel = selectOne(population, scores);
 //            }
-            response[i] = selectOne(population, scores);
+            response[i] = selectOne(population);
         }
         return response;
     }

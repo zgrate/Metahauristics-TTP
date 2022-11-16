@@ -5,6 +5,6 @@ import org.dzing.base.TTP;
 
 public interface Select {
 
-    City[][] select(City[][] population, TTP.ItemsResponse[] scores, int selectNumber);
+    City[][] select(TTP.ItemsResponse[] population, int selectNumber);
 
 }
