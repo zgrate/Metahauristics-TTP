@@ -220,6 +220,8 @@ public class Main {
     }
 
     public static void main(String[] args) throws FileNotFoundException, InterruptedException {
+        System.out.println("It's working... Starting in 10 seconds");
+        Thread.sleep(10000);
         executeAllTestsForFile("easy_0.ttp");
         executeAllTestsForFile("medium_0.ttp");
         executeAllTestsForFile("medium_1.ttp");
