@@ -220,80 +220,10 @@ public class Main {
     }
 
     public static void main(String[] args) throws FileNotFoundException, InterruptedException {
-//        performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-////        System.exit(0);
-//        performTestForSA("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-//        performTestForRoulette("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-//        performTestForTournament("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-//        System.exit(0);
-
-
-//        System.exit(0);
-//        TTP ttp = TTP.loadTTP("dane\\medium_0.ttp");
-//        for(int i = 0; i < 10; i++) {
-//            performTestForSA("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-//        }
-        for (int i = 0; i < 10; i++) {
-            performTestForSA("dane", "medium_0.ttp", true, new GreedyPriceOverWeight());
-//            System.exit(0);
-        }
-//        System.exit(0);
-
-        for (int i = 0; i < 10; i++) {
-            performTestForSA("dane", "trivial_0.ttp", true, new GreedyPriceOverWeight());
-        }
-//        performTestForTabu("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-//        System.exit(0);
-        for (int i = 0; i < 10; i++) {
-            performTestForSA("dane", "easy_1.ttp", true, new GreedyPriceOverWeight());
-        }
-//        System.exit(0);
-        for (int i = 0; i < 10; i++) {
-            performTestForSA("dane", "hard_0.ttp", true, new GreedyPriceOverWeight());
-        }
-        System.exit(0);
-//        random("easy_0.ttp");
-//        random("easy_1.ttp");
-//        random("easy_2.ttp");
-//        random("hard_0.ttp");
-//        random("medium_0.ttp");
-//        random("trivial_0.ttp");
-//        System.exit(0);
-//        for(int i = 0; i < 10; i++) {
-//            performTestForRoulette("dane", "trivial_0.ttp", true, new GreedyPriceOverWeight());
-//        }
-//        for(int i = 0; i < 10; i++) {
-//            performTestForRoulette("dane", "easy_1.ttp", true, new GreedyPriceOverWeight());
-//        }
-//        for(int i = 0; i < 10; i++) {
-//            performTestForRoulette("dane", "medium_0.ttp", true, new GreedyPriceOverWeight());
-//        }
-//        for(int i = 0; i < 10; i++) {
-//            performTestForRoulette("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-//        }
-//        performTest("dane", "easy_0.ttp", true, new GreedyPriceOverWeight());
-//        System.exit(0);
-//        for (int i = 0; i < 8; i++) {
-//        }
-//        System.exit(0);
-//        assert ttp != null;
-//
-////        Trainer trainer = new Trainer (new GeneticEvolutionSolver(ttp, 100, new RouletteSelect(), new SwapMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.1), 100, "output_genetic.csv");
-//        Trainer trainer2 = new Trainer(new GeneticEvolutionSolver(ttp, 100, new TournamentSelect(2), new InverseMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.6), 1000, new File("output_genetic_no_items_tournament.csv"));
-////        Trainer trainer = new Trainer(new GeneticEvolutionSolver(ttp, 100, new RouletteSelect(10), new SwapMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.7, 0.05), 100, new File("output_genetic_no_items_roulette.csv"));
-////        Trainer trainer = new Trainer(new GreedySolver(ttp, new GreedyPriceOverWeight()), 100, "output_greedy.csv");
-////        trainer.start();
-//        trainer2.start();
-////        trainer.join();
-//        trainer2.join();
-//        System.exit(0);
-
-//
-//        for (int index = 0; index < 1; index++) {
-////                TTP.ItemsResponse response = ttp.calculateFunctionValueWithGreedyItemSelection(cities);s
-//            Trainer trainer = new Trainer(new RandomSolver(ttp, new GreedyWithTravelCostNextCity(0.5)), 1, "output" + System.currentTimeMillis() + ".csv");
-//            trainer.start();
-//        }
+        executeAllTestsForFile("easy_0.ttp");
+        executeAllTestsForFile("medium_0.ttp");
+        executeAllTestsForFile("medium_1.ttp");
+        executeAllTestsForFile("medium_2.ttp");
 
     }
 
