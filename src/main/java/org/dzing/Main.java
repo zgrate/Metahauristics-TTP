@@ -12,6 +12,8 @@ import org.dzing.genetic.selections.RouletteSelect;
 import org.dzing.genetic.selections.TournamentSelect;
 import org.dzing.hauristics.GreedySolver;
 import org.dzing.hauristics.RandomSolver;
+import org.dzing.hybrids.gaclones.GeneticEvolutionSolverWithCloneRemoval;
+import org.dzing.hybrids.gaclones.GeneticEvolutionSolverWithStagnationIncrease;
 import org.dzing.itemchoicealgorithms.GreedyPriceOverWeight;
 import org.dzing.sa.SASolver;
 import org.dzing.sa.StandardTempAlgo;
@@ -28,21 +30,22 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static String BASE_DIR = "D:\\Metahauristics_Results\\";
+    //    public static String BASE_DIR = "D:\\Metahauristics_Results\\hybrids";
+    public static String BASE_DIR = "/data/metah/hybrids/3";
 
     public static boolean ECHO = false;
 
-    static int minPopulation = 50, maxPopulation = 450, populationStep = 100;
-    static double minMutationProb = 0.1, maxMutationProb = 0.3, mutationStep = 0.05;
-    static double minCrossProb = 0, maxCrossProb = 0.8, crossProbStep = 0.2;
-    static int minGeneration = 50, maxGeneration = 200, generationStep = 50;
-    static int minTournament = 1, maxTournament = 11, tournamentStep = 2;
+    static int minPopulation = 250, maxPopulation = 450, populationStep = 100;
+    static double minMutationProb = 0.2, maxMutationProb = 0.35, mutationStep = 0.05;
+    static double minCrossProb = 0.2, maxCrossProb = 0.6, crossProbStep = 0.2;
+    static int minGeneration = 300, maxGeneration = 320, generationStep = 50;
+    static int minTournament = 5, maxTournament = 9, tournamentStep = 2;
 
     static int randomAmountRepeat = 100000;
 
-    static int minNumberOfIteration = 200, maxNumberOfIterations = 1000, iterationStep = 200;
+    static int minNumberOfIteration = 1000, maxNumberOfIterations = 1500, iterationStep = 1000;
     static int minNumberOfNeighbours = 10, maxNumberOfNeighbours = 110, neighbourStep = 20;
-    static int minTabuSteps = 100, maxTabuSteps = 500, tabuStep = 100;
+    static int minTabuSteps = 300, maxTabuSteps = 700, tabuStep = 100;
     static double minTabuMutationProb = 0.05, maxTabuMutationProb = 0.6, tabuMutationStep = 0.1;
 
 
@@ -157,9 +160,9 @@ public class Main {
         folderNew.mkdirs();
         assert ttp != null;
         int i = 0;
-        for (int generations = 100; generations < 301; generations += 100) {
+        for (int generations = 1000; generations < 1050; generations += 100) {
             for (int neighbours = 50; neighbours < 300; neighbours += 50) {
-                for (int startTemp = 1; startTemp < 50; startTemp += 10) {
+                for (int startTemp = 50; startTemp < 300; startTemp += 50) {
                     for (double mutChance = 0.0; mutChance < 0.5; mutChance += 0.1) {
                         service.submit(new Trainer(new SASolver(ttp, itemChoiceAlgorithm, neighbours, new RandomTabuInit(), new SwapMutate(), mutChance, new StandardTempAlgo(startTemp, 1, 0.05)), generations, new File(folderNew, neighbours + "_" + mutChance + "_" + startTemp + "_random_swap_" + itemChoiceAlgorithm.getClass().getName() + "_" + generations + ".csv")));
                         service.submit(new Trainer(new SASolver(ttp, itemChoiceAlgorithm, neighbours, new GreedyBestCity(), new SwapMutate(), mutChance, new StandardTempAlgo(startTemp, 1, 0.05)), generations, new File(folderNew, neighbours + "_" + mutChance + "_" + startTemp + "_greedy_swap_" + itemChoiceAlgorithm.getClass().getName() + "_" + generations + ".csv")));
@@ -202,31 +205,168 @@ public class Main {
         t2.join();
         System.out.println("Starting SA...");
 
-        for (int i = 0; i < 10; i++) {
-            performTestForSA("dane", file, true, new GreedyPriceOverWeight());
-        }
-        System.out.println("Starting TABU");
-        for (int i = 0; i < 10; i++) {
-            performTestForTabu("dane", file, true, new GreedyPriceOverWeight());
-        }
+//        for (int i = 0; i < 10; i++) {
+//            performTestForSA("dane", file, true, new GreedyPriceOverWeight());
+//        }
+//        System.out.println("Starting TABU");
+//        for (int i = 0; i < 10; i++) {
+//            performTestForTabu("dane", file, true, new GreedyPriceOverWeight());
+//        }
         System.out.println("Starting roulette");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 2; i++) {
             performTestForRoulette("dane", file, true, new GreedyPriceOverWeight());
         }
         System.out.println("Starting tournament");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             performTestForTournament("dane", file, true, new GreedyPriceOverWeight());
         }
     }
 
-    public static void main(String[] args) throws FileNotFoundException, InterruptedException {
-        System.out.println("It's working... Starting in 10 seconds");
-        Thread.sleep(10000);
-        executeAllTestsForFile("easy_0.ttp");
-        executeAllTestsForFile("medium_0.ttp");
-        executeAllTestsForFile("medium_1.ttp");
-        executeAllTestsForFile("medium_2.ttp");
+    public static void executeHardTest(String file) throws InterruptedException {
+        TTP ttp = TTP.loadTTP(Path.of("dane", file).toString());
 
+        System.out.println("Starting " + file);
+        Trainer t = new Trainer(new GreedySolver(ttp, new GreedyPriceOverWeight()), ttp.cities.length, new File(BASE_DIR, file.replace(".ttp", "").replace("_", "") + "_output_greedy.csv"));
+        Trainer t2 = new Trainer(new RandomSolver(ttp, new GreedyPriceOverWeight()), randomAmountRepeat, new File(BASE_DIR, file.replace(".ttp", "").replace("_", "") + "_output_random.csv"));
+        System.out.println("Generating randoms and greedy...");
+//        t.start();
+//        t2.start();
+//        t.join();
+//        t2.join();
+
+        ExecutorService service = Executors.newCachedThreadPool();
+        File folderNew = Path.of(BASE_DIR, file + "_directory_" + System.currentTimeMillis() + "_hard").toFile();
+        folderNew.mkdirs();
+        for (int i = 0; i < 10; i++) {
+            //350_0.4_0.25_tour_inverse_ox_org.dzing.itemchoicealgorithms.GreedyPriceOverWeight_7_150.csv
+            //population + "_" + crossProb + "_" + mutationProb + "_tour_inverse_cx_" + algo.getClass().getName() + "_" + tournament + "_" + generation + ".csv"
+            service.submit(new Trainer(new GeneticEvolutionSolver(ttp, 450, new TournamentSelect(9), new InverseMutate(), new CXCross(), new GreedyPriceOverWeight(), 0.4, 0.25 * 2), 20000, new File(folderNew, "HARD_GA_350_0.4_0.25_tour_inverse_ox_org.dzing.itemchoicealgorithms.GreedyPriceOverWeight_" + i + "_.csv")));
+            //150_1_31_random_inverse_greedy_100.csv
+            //neighbours + "_" + mutChance + "_" + startTemp + "_random_swap_" + itemChoiceAlgorithm.getClass().getName() + "_" + generations + ".csv"
+
+//            service.submit(new Trainer(new SASolver(ttp, new GreedyPriceOverWeight(), 150, new RandomTabuInit(), new SwapMutate(), 1, new StandardTempAlgo(1000, 1, 0.05)), 20000, new File(folderNew, "HARD_SA_150_1_31_random_inverse_greedy_"+i+"_.csv")));
+
+            //70_1_400_greedy_inverse_org.dzing.itemchoicealgorithms.GreedyPriceOverWeight_800.csv
+            //neighbours + "_" + prob + "_" + tabu + "_greedy_swap_" + item.getClass().getName() + "_" + iterations + ".csv"
+//            service.submit(new Trainer(new TabuSolver(new GreedyBestCity(), ttp, 70, new SwapMutate(), 1, new GreedyPriceOverWeight(), 400), 20000, new File(folderNew, "HARD_TABU_70_1_400_greedy_inverse_org.dzing.itemchoicealgorithms.GreedyPriceOverWeight_"+i+"_.csv")));
+
+        }
+        service.shutdown();
+        service.awaitTermination(100, TimeUnit.DAYS);
+    }
+
+    public static void executeGeneticEvolutionWithClonesRemover(String file, String folder, ItemChoiceAlgorithm algo) throws InterruptedException {
+        ExecutorService service = Executors.newCachedThreadPool();
+//        ExecutorService service = Executors.newFixedThreadPool(8) ;
+        File folderNew = Path.of(BASE_DIR, file + "_directory_" + System.currentTimeMillis() + "_clones").toFile();
+        folderNew.mkdirs();
+        TTP ttp = TTP.loadTTP(Path.of(folder, file).toString());
+        assert ttp != null;
+//        service.submit(new Trainer(new GreedySolver(ttp, algo), ttp.cities.length, new File(folderNew, "output_greedy.csv")));
+//        service.submit(new Trainer(new RandomSolver(ttp, algo), randomAmountRepeat, new File(folderNew, "output_random.csv")));
+
+        int i = 0;
+        for (int generation = minGeneration; generation < maxGeneration; generation += generationStep) {
+            for (int population = minPopulation; population < maxPopulation; population += populationStep) {
+                for (double mutationProb = minMutationProb; mutationProb < maxMutationProb; mutationProb += mutationStep) {
+                    for (double crossProb = minCrossProb; crossProb < maxCrossProb; crossProb += crossProbStep) {
+                        for (int tournament = minTournament; tournament < maxTournament; tournament += tournamentStep) {
+//                            for(int cloneRemovalTrial = 50; cloneRemovalTrial < 351; cloneRemovalTrial+=100){
+                            service.submit(new Trainer(new GeneticEvolutionSolverWithCloneRemoval(ttp, population, new TournamentSelect(tournament), new InverseMutate(), new CXCross(), algo, crossProb, mutationProb * 2, 1), generation, new File(folderNew, population + "_" + crossProb + "_" + mutationProb + "_tour_inverse_cx_" + algo.getClass().getName() + "_" + tournament + "_" + generation + ".csv")));
+                            service.submit(new Trainer(new GeneticEvolutionSolverWithCloneRemoval(ttp, population, new TournamentSelect(tournament), new SwapMutate(), new CXCross(), algo, crossProb, mutationProb, 1), generation, new File(folderNew, population + "_" + crossProb + "_" + mutationProb * 2 + "_tour_swap_cx_" + algo.getClass().getName() + "_" + tournament + "_" + generation + ".csv")));
+                            service.submit(new Trainer(new GeneticEvolutionSolverWithCloneRemoval(ttp, population, new TournamentSelect(tournament), new InverseMutate(), new OXCross(), algo, crossProb, mutationProb * 2, 1), generation, new File(folderNew, population + "_" + crossProb + "_" + mutationProb + "_tour_inverse_ox_" + algo.getClass().getName() + "_" + tournament + "_" + generation + ".csv")));
+                            service.submit(new Trainer(new GeneticEvolutionSolverWithCloneRemoval(ttp, population, new TournamentSelect(tournament), new SwapMutate(), new OXCross(), algo, crossProb, mutationProb, 1), generation, new File(folderNew, population + "_" + crossProb + "_" + mutationProb * 2 + "_tour_swap_ox_" + algo.getClass().getName() + "_" + tournament + "_" + generation + ".csv")));
+                            i += 4;
+//                            }
+                        }
+//
+                    }
+                }
+            }
+        }
+        System.out.println("STARTED " + i);
+        service.shutdown();
+        service.awaitTermination(100, TimeUnit.DAYS);
+
+    }
+
+    public static void executeGeneticEvolutionStagnation(String file, String folder, ItemChoiceAlgorithm algo) throws InterruptedException {
+        ExecutorService service = Executors.newCachedThreadPool();
+        File folderNew = Path.of(BASE_DIR, file + "_directory_" + System.currentTimeMillis() + "_stagnation").toFile();
+        folderNew.mkdirs();
+        TTP ttp = TTP.loadTTP(Path.of(folder, file).toString());
+        assert ttp != null;
+//        service.submit(new Trainer(new GreedySolver(ttp, algo), ttp.cities.length, new File(folderNew, "output_greedy.csv")));
+//        service.submit(new Trainer(new RandomSolver(ttp, algo), randomAmountRepeat, new File(folderNew, "output_random.csv")));
+
+        int i = 0;
+        for (int generation = minGeneration; generation < maxGeneration; generation += generationStep) {
+            for (int population = minPopulation; population < maxPopulation; population += populationStep) {
+                for (double mutationProb = minMutationProb; mutationProb < maxMutationProb; mutationProb += mutationStep) {
+                    for (double crossProb = minCrossProb; crossProb < maxCrossProb; crossProb += crossProbStep) {
+                        for (int tournament = minTournament; tournament < maxTournament; tournament += tournamentStep) {
+                            for (int stagnationLength = 5; stagnationLength < 10; stagnationLength += 2) {
+                                for (int stagnationMargin = 100; stagnationMargin < 5501; stagnationMargin += 1000) {
+                                    for (double randomChance = 0.05; randomChance < 0.351; randomChance += 0.1) {
+                                        service.submit(new Trainer(new GeneticEvolutionSolverWithStagnationIncrease(ttp, population, new TournamentSelect(tournament), new InverseMutate(), new CXCross(), algo, crossProb, mutationProb * 2, stagnationLength, stagnationMargin, randomChance), generation, new File(folderNew, population + "_" + crossProb + "_" + mutationProb + "_tour_inverse_cx_" + algo.getClass().getName() + "_" + tournament + "_" + generation + ".csv")));
+                                        service.submit(new Trainer(new GeneticEvolutionSolverWithStagnationIncrease(ttp, population, new TournamentSelect(tournament), new SwapMutate(), new CXCross(), algo, crossProb, mutationProb, stagnationLength, stagnationMargin, randomChance), generation, new File(folderNew, population + "_" + crossProb + "_" + mutationProb * 2 + "_tour_swap_cx_" + algo.getClass().getName() + "_" + tournament + "_" + generation + ".csv")));
+                                        service.submit(new Trainer(new GeneticEvolutionSolverWithStagnationIncrease(ttp, population, new TournamentSelect(tournament), new InverseMutate(), new OXCross(), algo, crossProb, mutationProb * 2, stagnationLength, stagnationMargin, randomChance), generation, new File(folderNew, population + "_" + crossProb + "_" + mutationProb + "_tour_inverse_ox_" + algo.getClass().getName() + "_" + tournament + "_" + generation + ".csv")));
+                                        service.submit(new Trainer(new GeneticEvolutionSolverWithStagnationIncrease(ttp, population, new TournamentSelect(tournament), new SwapMutate(), new OXCross(), algo, crossProb, mutationProb, stagnationLength, stagnationMargin, randomChance), generation, new File(folderNew, population + "_" + crossProb + "_" + mutationProb * 2 + "_tour_swap_ox_" + algo.getClass().getName() + "_" + tournament + "_" + generation + ".csv")));
+                                        i += 4;
+                                    }
+                                }
+                            }
+                        }
+//
+                    }
+                }
+            }
+        }
+        System.out.println("STARTED " + i);
+        service.shutdown();
+        service.awaitTermination(100, TimeUnit.DAYS);
+
+    }
+
+    public static void main(String[] args) throws FileNotFoundException, InterruptedException {
+        if (!new File(BASE_DIR).exists()) {
+            System.out.println("File not exists");
+            Thread.sleep(30000);
+
+        }
+        System.out.println("It's working... Starting HARD in 10 seconds");
+//        Thread.sleep(5000);
+//        for(int i = 0; i < 10; i++) {
+//            executeGeneticEvolutionStagnation("medium_0.ttp", "dane", new GreedyPriceOverWeight());
+//        }
+//        System.exit(0);
+//        for(int i = 0; i < 5; i++) {
+//            executeGeneticEvolutionWithClonesRemover("easy_0.ttp", "dane", new GreedyPriceOverWeight());
+//        }
+        for (int i = 0; i < 5; i++) {
+            executeGeneticEvolutionWithClonesRemover("medium_0.ttp", "dane", new GreedyPriceOverWeight());
+        }
+        for (int i = 0; i < 5; i++) {
+            executeGeneticEvolutionWithClonesRemover("medium_1.ttp", "dane", new GreedyPriceOverWeight());
+        }
+//        System.exit(0);
+//        for(int i = 0; i < 5; i++) {
+//            executeGeneticEvolutionWithClonesRemover("medium_2.ttp", "dane", new GreedyPriceOverWeight());
+//        }
+
+//        executeGeneticEvolutionStagnation( "easy_0.ttp","dane", new GreedyPriceOverWeight());
+
+
+//        executeAllTestsForFile("easy_0.ttp");
+//        executeAllTestsForFile("medium_0.ttp");
+//        executeAllTestsForFile("hard_0.ttp");
+//        executeAllTestsForFile("hard_1.ttp");
+//        executeAllTestsForFile("hard_0.ttp");
+//        executeAllTestsForFile("hard_1.ttp");
+//        executeAllTestsForFile("medium_1.ttp");
+//        executeAllTestsForFile("medium_2.ttp");
+//        executeHardTest("hard_0.ttp");
+//        executeHardTest("hard_1.ttp");
     }
 
 
